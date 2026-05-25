@@ -1,0 +1,107 @@
+# --- BASE DE DATOS DE LOS PACIENTES ---
+ # =====================================================================
+# 1. CREACIÓN DEL ARCHIVO TEXTO CON LOS DATOS DE LA HOJA DE EXAMEN
+# =====================================================================
+datos_medicos = """Hulk Banner: 100, 82, 85, 80, 85, 88, 84, 83, 81, 83, 95, 108, 110, 95, 112, 111, 105, 90, 108, 117, 85, 84, 83, 82, 81, 80, 79, 78, 77, 76, 75, 76, 108, 110, 112, 105, 108, 110, 101, 102, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 105, 99, 100, 105, 90, 91, 105, 109, 99, 110
+Tony Iron: 80, 82, 85, 80, 85, 88, 84, 83, 81, 80, 105, 88, 110, 95, 92, 111, 95, 110, 98, 117, 84, 85, 93, 92, 91, 80, 78, 79, 87, 86, 86, 85, 88, 90, 88, 86, 85, 92, 91, 90, 93, 94, 95, 96, 97, 88, 89, 90, 91, 101, 105, 108, 90, 95, 102, 111, 95, 90, 88, 110
+Steve América: 85, 98, 90, 95, 102, 101, 105, 90, 88, 110, 95, 88, 90, 95, 92, 101, 102, 110, 103, 101, 104, 105, 93, 92, 91, 80, 78, 79, 87, 86, 86, 85, 88, 90, 88, 86, 85, 92, 91, 90, 93, 94, 95, 96, 97, 88, 89, 90, 91, 101, 81, 82, 83, 80, 85, 90, 84, 80, 81, 80
+Bruce Batman: 105, 108, 90, 105, 112, 111, 105, 90, 108, 117, 95, 98, 90, 95, 92, 111, 111, 95, 90, 88, 110, 85, 84, 83, 82, 81, 80, 79, 78, 77, 76, 75, 76, 78, 80, 82, 85, 88, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 75, 76, 78, 80, 82, 85, 88, 90, 91, 92"""
+
+with open("frecuencias.txt", "w") as file:
+    file.write(datos_medicos.strip())
+
+# =====================================================================
+# 2. PROCESAMIENTO ANALÍTICO DESDE EL ARCHIVO TEXTO
+# =====================================================================
+def analizar_paciente(nombre_buscar):
+    pacientes = {}
+    with open("frecuencias.txt", "r") as archivo:
+        for linea in archivo:
+            if linea.strip():
+                nombre, datos = linea.split(":")
+                pacientes[nombre.strip().lower()] = (nombre.strip(), [int(x) for x in datos.strip().split(",")])
+    
+    if nombre_buscar.lower() not in pacientes:
+        print("\n[!] Error: Paciente no encontrado en la base de datos.")
+        return
+
+    nombre_real, lecturas = pacientes[nombre_buscar.lower()]
+    
+    # Evaluación Matemática de Taquicardia Sostenida (>5 lecturas consecutivas > 100)
+    taquicardia = False
+    minuto_inicio = 0
+    minuto_fin = 0
+    
+    for i in range(len(lecturas) - 5):
+        if all(x > 100 for x in lecturas[i:i+6]):
+            taquicardia = True
+            minuto_inicio = i + 1
+            fin_racha = i + 6
+            while fin_racha < len(lecturas) and lecturas[fin_racha] > 100:
+                fin_racha += 1
+            minuto_fin = fin_racha
+            break
+
+    # Evaluación de Fatiga por Esfuerzo (Últimos 10 min > Primeros 10 min en más del 20%)
+    primeros_10 = lecturas[:10]
+    ultimos_10 = lecturas[-10:]
+    promedio_inicio = sum(primeros_10) / 10
+    promedio_fin = sum(ultimos_10) / 10
+    fatiga = promedio_fin > (promedio_inicio * 1.20)
+
+    # Impresión estructurada del Reporte Clínico
+    print("\n" + "=" * 55)
+    print(f" REPORTE CARDÍACO ASIGNADO: {nombre_real.upper()}")
+    print("=" * 55)
+    
+    complicaciones = False
+    if taquicardia:
+        print(f"[*] Taquicardia Sostenida: Detectada entre minutos {minuto_inicio} y {minuto_fin}.")
+        complicaciones = True
+    if fatiga:
+        print(f"[*] Fatiga por Esfuerzo: Detectada.")
+        print(f"    - Promedio Inicial (10 min): {promedio_inicio:.1f} bpm")
+        print(f"    - Promedio Final (10 min): {promedio_fin:.1f} bpm")
+        complicaciones = True
+    if not complicaciones:
+        print("[v] Paciente sin complicaciones cardíacas.")
+    print("=" * 55)
+
+# =====================================================================
+# 3. INTERFAZ DE MENÚ ITERATIVO (REQUISITO EXAMEN)
+# =====================================================================
+while True:
+    print("\n--- SISTEMA DE CONTROL DE ANOMALÍAS CARDÍACAS ---")
+    print("1. Analizar Hulk Banner")
+    print("2. Analizar Tony Iron")
+    print("3. Analizar Steve América")
+    print("4. Analizar Bruce Batman")
+    print("5. Salir del Programa")
+    
+    opcion = input("\nSeleccione una opción (1-5): ").strip()
+    
+    if opcion == "1":
+        analizar_paciente("Hulk Banner")
+    elif opcion == "2":
+        analizar_paciente("Tony Iron")
+    elif opcion == "3":
+        analizar_paciente("Steve América")
+    elif opcion == "4":
+        analizar_paciente("Bruce Batman")
+    elif opcion == "5":
+        print("\nCerrando el sistema médico. ¡Examen finalizado con éxito!")
+        break
+    else:
+        print("\n[!] Opción inválida. Ingrese un número del 1 al 5.")
+
+        
+--- SISTEMA DE CONTROL DE ANOMALÍAS CARDÍACAS ---
+1. Analizar Hulk Banner
+2. Analizar Tony Iron
+3. Analizar Steve América
+4. Analizar Bruce Batman
+5. Salir del Programa
+
+
+
+ 
